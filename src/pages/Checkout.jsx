@@ -1,23 +1,34 @@
 import React, { useEffect, useState } from 'react'
-import { useLocation, useNavigate, Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle2, ShieldCheck, Lock, ArrowLeft, ArrowRight, CreditCard, Smartphone } from 'lucide-react'
-import { useAuthStore } from '../store/authStore'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { 
+  CheckCircle2, 
+  ShieldCheck, 
+  Lock, 
+  ArrowLeft, 
+  CreditCard, 
+  Smartphone, 
+  Globe, 
+  Wallet,
+  Zap,
+  Info
+} from 'lucide-react'
 import { useSubscriptionStore } from '../store/subscriptionStore'
+import { useAuthStore } from '../store/authStore'
+import { motion, AnimatePresence } from 'framer-motion'
 
-export default function Checkout() {
+const Checkout = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const { user } = useAuthStore()
-  const { upgradePlan, loading, error } = useSubscriptionStore()
-  
-  // Get plan details from navigation state or redirect
-  const { plan, amount, billingCycle } = location.state || {}
+  const { plan, billingCycle, amount: rawAmount } = location.state || {}
+  const upgradePlan = useSubscriptionStore((state) => state.upgradePlan)
+  const loading = useSubscriptionStore((state) => state.loading)
+  const user = useAuthStore((state) => state.user)
 
+  const [selectedMethod, setSelectedMethod] = useState('card')
+  const [showPromo, setShowPromo] = useState(false)
+
+  // Redirect if no plan selected
   useEffect(() => {
-    if (!plan || !amount) {
-      navigate('/subscription')
-    }
     
     // Dynamically load Razorpay script
     const script = document.createElement('script')

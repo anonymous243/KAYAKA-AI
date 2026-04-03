@@ -118,6 +118,7 @@ export const useSubscriptionStore = create((set, get) => ({
         prefill: {
           name: user.user_metadata?.full_name || '',
           email: user.email || '',
+          contact: user.user_metadata?.phone || '',
         },
         theme: {
           color: '#6C5CE7'
