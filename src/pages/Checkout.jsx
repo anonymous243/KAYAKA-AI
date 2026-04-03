@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useLocation, useNavigate, Link } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { 
   CheckCircle2, 
   ShieldCheck, 
@@ -76,10 +76,13 @@ const Checkout = () => {
 
       {/* Header */}
       <header className="h-20 border-b border-white/5 flex items-center px-10 relative z-20">
-        <Link to="/subscription" className="flex items-center gap-2 text-[#a5aac2] hover:text-white transition-colors group">
+        <button 
+          onClick={() => navigate('/subscription')}
+          className="flex items-center gap-2 text-[#a5aac2] hover:text-white transition-colors group"
+        >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           <span className="text-xs font-black uppercase tracking-widest">Back to Plans</span>
-        </Link>
+        </button>
         <div className="flex-1 flex justify-center">
           <div className="flex items-center gap-3">
              <div className="w-8 h-8 bg-[#69f6b8] rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(105,246,184,0.3)]">
