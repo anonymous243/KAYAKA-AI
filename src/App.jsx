@@ -149,13 +149,13 @@ function AnimatedRoutes() {
 
 function App() {
   return (
-    <ErrorBoundary>
-      <BrowserRouter>
+    <BrowserRouter>
+      <ErrorBoundary>
         <Suspense fallback={<PageLoading />}>
           <AnimatedRoutes />
         </Suspense>
-      </BrowserRouter>
-    </ErrorBoundary>
+      </ErrorBoundary>
+    </BrowserRouter>
   )
 }
 

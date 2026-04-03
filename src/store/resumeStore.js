@@ -1,9 +1,18 @@
 import { create } from 'zustand'
-import { useAuthStore } from './authStore'
+
+const getUserId = () => {
+  try {
+    const userCache = localStorage.getItem('kayaka_ai_user_cache')
+    if (userCache) {
+      const user = JSON.parse(userCache)
+      return user?.id || 'anonymous'
+    }
+  } catch {}
+  return 'anonymous'
+}
 
 const getStorageKey = (baseKey) => {
-  const user = useAuthStore.getState().user
-  const userId = user?.id || 'anonymous'
+  const userId = getUserId()
   return `kayaka_${userId}_${baseKey}`
 }
 
@@ -16,8 +25,8 @@ export const useResumeStore = create((set, get) => ({
 
   // Initialize data based on current user
   initializeUserData: () => {
-    const userId = useAuthStore.getState().user?.id
-    if (!userId) return
+    const userId = getUserId()
+    if (userId === 'anonymous') return
 
     set({
       parsedData: JSON.parse(localStorage.getItem(`kayaka_${userId}_parsed_data`) || 'null'),
@@ -48,8 +57,8 @@ export const useResumeStore = create((set, get) => ({
   setUploadError: (error) => set({ uploadError: error }),
 
   clearResume: () => {
-    const userId = useAuthStore.getState().user?.id
-    if (userId) {
+    const userId = getUserId()
+    if (userId !== 'anonymous') {
       localStorage.removeItem(`kayaka_${userId}_parsed_data`)
       localStorage.removeItem(`kayaka_${userId}_jd_analysis`)
       localStorage.removeItem(`kayaka_${userId}_selected_template`)

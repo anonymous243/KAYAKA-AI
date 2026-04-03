@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { supabase, signOut } from '../lib/supabase'
-import { useResumeStore } from './resumeStore'
 
 const USER_KEY = 'kayaka_ai_user_cache'
 const TOKEN_REFRESH_THRESHOLD = 5 * 60 * 1000 // 5 minutes before expiry
@@ -26,9 +25,6 @@ export const useAuthStore = create((set, get) => ({
           loading: false
         })
         localStorage.setItem(USER_KEY, JSON.stringify(session.user))
-
-        // Initialize resume data for this user
-        useResumeStore.getState().initializeUserData()
 
         // Set up token refresh monitoring
         get().scheduleTokenRefresh(session)
@@ -132,9 +128,6 @@ export const useAuthStore = create((set, get) => ({
     })
     localStorage.setItem(USER_KEY, JSON.stringify(data.user))
 
-    // Initialize resume data for this user
-    useResumeStore.getState().initializeUserData()
-
     return data
   },
 
@@ -193,10 +186,6 @@ export const useAuthStore = create((set, get) => ({
         isAuthenticated: true
       })
       localStorage.setItem(USER_KEY, JSON.stringify(session.user))
-      
-      // Initialize resume data for this user
-      useResumeStore.getState().initializeUserData()
-      
       return session
     }
 
@@ -252,9 +241,6 @@ export const useAuthStore = create((set, get) => ({
             isAuthenticated: true
           })
           localStorage.setItem(USER_KEY, JSON.stringify(session.user))
-          
-          // Initialize resume data for this user
-          useResumeStore.getState().initializeUserData()
         } else {
           set({
             user: null,

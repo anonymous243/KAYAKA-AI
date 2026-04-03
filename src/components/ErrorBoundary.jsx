@@ -1,5 +1,4 @@
 import { Component } from 'react'
-import { Link } from 'react-router-dom'
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -85,27 +84,30 @@ class ErrorBoundary extends Component {
                 >
                   Try Again
                 </button>
-                <Link
-                  to="/dashboard"
+                <button
+                  onClick={() => window.location.href = '/dashboard'}
                   className="px-6 py-3 bg-white/10 text-white rounded-xl font-medium hover:bg-white/20 transition-colors"
                 >
                   Go to Dashboard
-                </Link>
-                <Link
-                  to="/"
+                </button>
+                <button
+                  onClick={() => window.location.href = '/'}
                   className="px-6 py-3 bg-white/10 text-white rounded-xl font-medium hover:bg-white/20 transition-colors"
                 >
                   Go Home
-                </Link>
+                </button>
               </div>
 
               {/* Support Link */}
               <div className="mt-6 pt-6 border-t border-white/10">
                 <p className="text-gray-500 text-sm">
                   Still having issues?{' '}
-                  <Link to="/contact" className="text-blue-400 hover:text-blue-300 font-medium">
+                  <button 
+                    onClick={() => window.location.href = '/contact'} 
+                    className="text-blue-400 hover:text-blue-300 font-medium"
+                  >
                     Contact Support
-                  </Link>
+                  </button>
                 </p>
               </div>
             </div>
