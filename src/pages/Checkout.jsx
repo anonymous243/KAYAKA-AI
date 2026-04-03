@@ -22,6 +22,7 @@ const Checkout = () => {
   const { plan, billingCycle, amount: rawAmount } = location.state || {}
   const upgradePlan = useSubscriptionStore((state) => state.upgradePlan)
   const loading = useSubscriptionStore((state) => state.loading)
+  const error = useSubscriptionStore((state) => state.error)
   const user = useAuthStore((state) => state.user)
 
   const [selectedMethod, setSelectedMethod] = useState('card')
@@ -123,7 +124,7 @@ const Checkout = () => {
                 <p className="text-[#a5aac2] text-xs font-bold uppercase tracking-widest opacity-60">Billed {billingCycle}</p>
               </div>
               <div className="text-right">
-                <p className="text-3xl font-black text-[#69f6b8]">₹{amount}</p>
+                <p className="text-3xl font-black text-[#69f6b8]">₹{rawAmount}</p>
                 <p className="text-[#a5aac2] text-[10px] font-black uppercase tracking-tighter">Total Due Today</p>
               </div>
             </div>
