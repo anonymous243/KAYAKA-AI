@@ -25,6 +25,7 @@
     "framer-motion": "^12.38.0",
     "html2pdf.js": "^0.14.0",
     "lottie-react": "^2.4.1",
+    "lucide-react": "^1.7.0",
     "pdfjs-dist": "^5.5.207",
     "puppeteer": "^24.40.0",
     "razorpay": "^2.9.6",
