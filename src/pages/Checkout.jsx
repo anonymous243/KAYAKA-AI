@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { 
   CheckCircle2, 
   ShieldCheck, 
@@ -41,10 +41,10 @@ const Checkout = () => {
         document.body.removeChild(script)
       }
     }
-  }, [plan, amount, navigate])
+  }, [plan, rawAmount, navigate])
 
   const handlePay = async () => {
-    const success = await upgradePlan(plan.name, amount)
+    const success = await upgradePlan(plan.name, rawAmount)
     if (success) {
       // Handled by store/subscription state, user will be redirected via store logic if needed
       // or we can navigate to dashboard here
