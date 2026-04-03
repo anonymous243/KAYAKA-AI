@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useSubscriptionStore } from '../store/subscriptionStore'
 import { useAuthStore } from '../store/authStore'
 import { Sparkles, CheckCircle2, AlertCircle } from 'lucide-react'
@@ -114,14 +114,17 @@ export default function Subscription() {
         {/* Header */}
         <header className="bg-[#070d1f]/80 backdrop-blur-md border-b border-white/5 sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <Link to="/dashboard" className="flex items-center gap-3">
+            <button 
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-3"
+            >
               <div className="w-10 h-10 bg-[#69f6b8] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(105,246,184,0.3)]">
                 <svg className="w-6 h-6 text-[#002919]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
               <span className="text-xl font-black text-white tracking-tighter uppercase">Kayaka-AI</span>
-            </Link>
+            </button>
             <button onClick={() => navigate('/dashboard')} className="text-[#a5aac2] font-bold text-xs uppercase tracking-widest hover:text-white transition-colors">
               Close
             </button>
