@@ -1,5 +1,6 @@
-import { useEffect } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import React, { useEffect, useState } from 'react'
+import { useLocation, useNavigate, Link } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   CheckCircle2,
   ShieldCheck,
@@ -7,6 +8,10 @@ import {
   ArrowLeft,
   CreditCard,
   Smartphone,
+  Globe,
+  Wallet,
+  Zap,
+  Info
 } from 'lucide-react'
 import { useSubscriptionStore } from '../store/subscriptionStore'
 import { useAuthStore } from '../store/authStore'

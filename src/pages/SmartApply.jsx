@@ -1,9 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { useResumeStore } from '../store/resumeStore'
 import { useSubscriptionStore } from '../store/subscriptionStore'
 import { useToast } from '../hooks/useToast'
-import { useEffect } from 'react'
 import { Lock, Sparkles } from 'lucide-react'
 import {
   generateSmartApplyPack,
