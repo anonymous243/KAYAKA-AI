@@ -125,7 +125,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchSubscription()
-  }, [])
+  }, [fetchSubscription])
 
   const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || 'User'
   const firstName = displayName.split(' ')[0]

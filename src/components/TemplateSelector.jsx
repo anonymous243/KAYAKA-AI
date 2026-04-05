@@ -11,7 +11,6 @@ const CATEGORY_INFO = {
 
 export default function TemplateSelector({ selectedTemplate, onSelect }) {
   const [activeCategory, setActiveCategory] = useState(TEMPLATE_CATEGORIES.ATS_OPTIMIZED)
-  const [hoveredTemplate, setHoveredTemplate] = useState(null)
 
   const filteredTemplates = TEMPLATES.filter(t => t.category === activeCategory)
 
@@ -49,8 +48,6 @@ export default function TemplateSelector({ selectedTemplate, onSelect }) {
           <div
             key={template.id}
             onClick={() => onSelect(template)}
-            onMouseEnter={() => setHoveredTemplate(template.id)}
-            onMouseLeave={() => setHoveredTemplate(null)}
             className={`cursor-pointer rounded-xl border-2 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
               selectedTemplate?.id === template.id
                 ? 'border-blue-600 bg-blue-50 shadow-lg shadow-blue-500/25'

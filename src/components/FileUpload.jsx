@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 
 export default function FileUpload({ onUpload, accept = '.pdf,.doc,.docx', maxSize = 5 * 1024 * 1024 }) {
   const [dragActive, setDragActive] = useState(false)

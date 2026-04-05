@@ -33,7 +33,7 @@ export default function SmartApply() {
 
   useEffect(() => {
     fetchSubscription()
-  }, [])
+  }, [fetchSubscription])
 
   if (!hasAccess('elite')) {
     return (

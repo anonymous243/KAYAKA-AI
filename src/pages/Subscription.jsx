@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useSubscriptionStore } from '../store/subscriptionStore'
-import { useAuthStore } from '../store/authStore'
 import { Sparkles, CheckCircle2, AlertCircle } from 'lucide-react'
 
 const plans = [
@@ -62,13 +61,12 @@ const plans = [
 
 export default function Subscription() {
   const navigate = useNavigate()
-  const { user } = useAuthStore()
-  const { plan: currentPlan, upgradePlan, fetchSubscription, loading, error } = useSubscriptionStore()
+  const { plan: currentPlan, fetchSubscription, loading, error } = useSubscriptionStore()
   const [billingCycle, setBillingCycle] = useState('monthly')
 
   useEffect(() => {
     fetchSubscription()
-  }, [])
+  }, [fetchSubscription])
 
   const handleUpgrade = (plan) => {
     if (plan.name.toLowerCase() === currentPlan) return

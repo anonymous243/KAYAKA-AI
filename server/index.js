@@ -260,6 +260,118 @@ app.post('/api/bridge-resume', async (req, res) => {
 });
 
 // ===========================================
+// SMART APPLY ENGINE (AI PACK GENERATOR)
+// ===========================================
+app.post('/api/generate-smart-pack', async (req, res) => {
+  const { resumeData, jobData, style = 'professional' } = req.body;
+  
+  if (!resumeData || !jobData) {
+    return res.status(400).json({ error: 'Both resume data and job data are required for pack generation.' });
+  }
+  
+  const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({ error: 'Missing Gemini API Key in backend.' });
+  }
+
+  try {
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+    const prompt = `
+    You are a Strategic Career Architect and HR Expert. Your task is to generate a comprehensive "Smart Apply Pack" for a candidate applying to a specific job.
+    
+    CANDIDATE DATA:
+    ${JSON.stringify(resumeData, null, 2)}
+
+    JOB DESCRIPTION:
+    ${JSON.stringify(jobData, null, 2)}
+
+    STYLE: ${style}
+
+    CRITICAL RULES:
+    1. DO NOT HALLUCINATE: Only use the candidate's actual roles, skills, and companies.
+    2. NARRATIVE SYNERGY: Bridge the candidate's strengths to the job's requirements.
+    3. TONE: Use a ${style} tone. (Professional = standard SaaS corporate, Modern = bold and high-impact, Creative = storytelling and passionate).
+    4. OUTPUT FORMAT: Respond ONLY with valid JSON. Do not include markdown fences.
+
+    REQUIRED JSON STRUCTURE:
+    {
+      "coverLetter": {
+        "opening": "Standard professional salutation",
+        "intro": "High-impact 1-2 sentence introduction stating the role and enthusiasm.",
+        "body": "2-3 paragraphs bridging specific candidate skills/experiences to the job requirements.",
+        "closing": "Professional sign-off",
+        "fullText": "The complete, formatted cover letter text including header, date, and placeholder for contact info."
+      },
+      "recruiterDMs": [
+        {
+          "type": "initial",
+          "subject": "Short LinkedIn subject hook",
+          "message": "A 2-3 sentence personalized LinkedIn message to a recruiter."
+        },
+        {
+          "type": "follow-up",
+          "subject": "Follow-up subject",
+          "message": "A polite follow-up message if they haven't responded in 3 days."
+        }
+      ],
+      "followUpEmails": [
+        {
+          "type": "post-application",
+          "subject": "Subject for email sent 1 day after applying",
+          "body": "Professional email body."
+        },
+        {
+          "type": "post-interview",
+          "subject": "Thank you email subject",
+          "body": "A personalized thank you email mentioning likely interview topics."
+        },
+        {
+          "type": "status-check",
+          "subject": "Checking in after 1 week",
+          "body": "A polite status check email body."
+        }
+      ],
+      "checklist": [
+        { "item": "Step 1 description", "completed": false },
+        { "item": "Step 2 description", "completed": false },
+        { "item": "Step 3 description", "completed": false },
+        { "item": "Step 4 description", "completed": false },
+        { "item": "Step 5 description", "completed": false }
+      ],
+      "tips": [
+        "Strategic tip 1 for this specific job",
+        "Strategic tip 2 for this specific candidate",
+        "Company-specific research tip (if info available)"
+      ]
+    }
+    `;
+
+    console.log(`[SmartPack Core] Generating AI Apply Pack for ${resumeData.name}...`);
+    const result = await model.generateContent(prompt);
+    let output = result.response.text().trim();
+    
+    // Cleanup output
+    output = output.replace(/^```(?:json)?/im, '').replace(/```\s*$/m, '').trim();
+    const jsonStart = output.indexOf('{');
+    const jsonEnd = output.lastIndexOf('}');
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      output = output.substring(jsonStart, jsonEnd + 1);
+    }
+    
+    const packJSON = JSON.parse(output);
+    console.log(`[SmartPack Core] Package Architecture Successful!`);
+    
+    res.json(packJSON);
+
+  } catch (error) {
+    console.error(`[SmartPack Error]:`, error);
+    res.status(500).json({ error: 'AI Pack Generation Failed', details: error.message });
+  }
+});
+
+// ===========================================
 // RAZORPAY PAYMENT INTEGRATION
 // ===========================================
 
@@ -298,13 +410,13 @@ app.post('/api/create-order', async (req, res) => {
 
 // Verify Payment
 app.post('/api/verify-payment', async (req, res) => {
-  const { 
-    razorpay_order_id, 
-    razorpay_payment_id, 
+  const {
+    razorpay_order_id,
+    razorpay_payment_id,
     razorpay_signature,
     userId,
-    planName,
-    amount
+    planName: _planName,
+    amount: _amount
   } = req.body;
 
   if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -321,7 +433,7 @@ app.post('/api/verify-payment', async (req, res) => {
 
     if (generated_signature === razorpay_signature) {
       console.log(`[Razorpay] Payment verified: ${razorpay_payment_id} for user ${userId}`);
-      
+
       // In a real app, you would update Supabase here as well.
       // But we'll let the frontend handle the Supabase update for simplicity in this demo,
       // or we can do it here if we had service role access.

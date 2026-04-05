@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import PageWrapper from '../components/PageWrapper';
 
 // Obsidian Luminescence Architecture

@@ -7,7 +7,9 @@ const getUserId = () => {
       const user = JSON.parse(userCache)
       return user?.id || 'anonymous'
     }
-  } catch {}
+  } catch {
+    // Ignore parse errors, fallback to anonymous
+  }
   return 'anonymous'
 }
 
@@ -16,7 +18,7 @@ const getStorageKey = (baseKey) => {
   return `kayaka_${userId}_${baseKey}`
 }
 
-export const useResumeStore = create((set, get) => ({
+export const useResumeStore = create((set, _get) => ({
   parsedData: null,
   jdAnalysis: null,
   selectedTemplate: null,

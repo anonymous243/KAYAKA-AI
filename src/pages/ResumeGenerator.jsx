@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import { useResumeStore } from '../store/resumeStore'
 import { useSubscriptionStore } from '../store/subscriptionStore'
 import { useToast } from '../hooks/useToast'
@@ -27,7 +27,7 @@ const A4_H = 842
 
 export default function ResumeGenerator() {
   const navigate = useNavigate()
-  const { parsedData, jdAnalysis, selectedTemplate, setSelectedTemplate } = useResumeStore()
+  const { parsedData, selectedTemplate, setSelectedTemplate } = useResumeStore()
   const { showToast } = useToast()
   const previewRef = useRef(null)   // visible scaled viewer
   const pdfRef = useRef(null)        // hidden full-size for PDF export
@@ -35,9 +35,7 @@ export default function ResumeGenerator() {
   const [downloading, setDownloading] = useState(false)
   const [activeCat, setActiveCat] = useState('all')
   const [zoom, setZoom] = useState(0.65)
-  const [zoomIndex, setZoomIndex] = useState(1)
-  const [activeSection, setActiveSection] = useState('personal')
-  
+
   // Local editable state for real-time sync
   const [resumeData, setResumeData] = useState(parsedData)
 
@@ -45,7 +43,7 @@ export default function ResumeGenerator() {
 
   useEffect(() => {
     fetchSubscription()
-  }, [])
+  }, [fetchSubscription])
 
   // ── Guard ────────────────────────────────────────────────
   if (!parsedData) {
@@ -80,12 +78,6 @@ export default function ResumeGenerator() {
   const activeTemplate = selectedTemplate || TEMPLATES[0]
 
   // ── Helpers ───────────────────────────────────────────────
-  const cycleZoom = () => {
-    const next = (zoomIndex + 1) % ZOOM_LEVELS.length
-    setZoomIndex(next)
-    setZoom(ZOOM_LEVELS[next])
-  }
-
   const handleUpdate = (path, value) => {
     const newData = { ...resumeData }
     const keys = path.split('.')

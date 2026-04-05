@@ -51,19 +51,19 @@ describe('resumeStore', () => {
       name: 'John Doe',
       email: 'john@example.com'
     }
-    
+
     useResumeStore.getState().setParsedData(mockData)
-    
-    const stored = localStorage.getItem('kayaka_parsed_data')
+
+    const stored = localStorage.getItem('kayaka_anonymous_parsed_data')
     expect(JSON.parse(stored)).toEqual(mockData)
   })
 
   it('persists JD analysis to localStorage', () => {
     const mockAnalysis = { matchScore: 85 }
-    
+
     useResumeStore.getState().setJdAnalysis(mockAnalysis)
-    
-    const stored = localStorage.getItem('kayaka_jd_analysis')
+
+    const stored = localStorage.getItem('kayaka_anonymous_jd_analysis')
     expect(JSON.parse(stored)).toEqual(mockAnalysis)
   })
 

@@ -106,7 +106,8 @@ export const fetchJobDescription = async (url) => {
   }
 
   try {
-    const response = await fetch('http://localhost:3001/api/scrape', {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+    const response = await fetch(`${API_URL}/scrape`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url: url.trim() })
@@ -139,7 +140,7 @@ export const fetchJobDescription = async (url) => {
  * @param {number} seed - URL hash
  * @returns {object} - Mock job data
  */
-const generateMockJobData = (seed) => {
+const _generateMockJobData = (seed) => {
   const titles = [
     'Senior Software Engineer',
     'Full Stack Developer',
@@ -276,7 +277,7 @@ Nice to Have:
  * @param {string} str - Input string
  * @returns {number} - Hash value
  */
-const simpleHash = (str) => {
+const _simpleHash = (str) => {
   let hash = 0
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i)

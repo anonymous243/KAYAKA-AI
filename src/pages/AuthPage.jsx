@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useNavigate, Link } from 'react-router-dom'
+import { AnimatePresence } from 'framer-motion'
 import { useAuthStore } from '../store/authStore'
 import { useToast } from '../hooks/useToast'
 import { AlertCircle, Eye, EyeOff, Check, X } from 'lucide-react'
@@ -22,7 +22,6 @@ function getPasswordStrength(password) {
 
 export default function AuthPage({ defaultTab = 'login' }) {
   const navigate = useNavigate()
-  const location = useLocation()
   const [activeTab, setActiveTab] = useState(defaultTab)
 
   const handleLogoClick = () => {

@@ -1,20 +1,15 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { 
-  CheckCircle2, 
-  ShieldCheck, 
-  Lock, 
-  ArrowLeft, 
-  CreditCard, 
-  Smartphone, 
-  Globe, 
-  Wallet,
-  Zap,
-  Info
+import {
+  CheckCircle2,
+  ShieldCheck,
+  Lock,
+  ArrowLeft,
+  CreditCard,
+  Smartphone,
 } from 'lucide-react'
 import { useSubscriptionStore } from '../store/subscriptionStore'
 import { useAuthStore } from '../store/authStore'
-import { motion, AnimatePresence } from 'framer-motion'
 
 const Checkout = () => {
   const location = useLocation()
@@ -24,9 +19,6 @@ const Checkout = () => {
   const loading = useSubscriptionStore((state) => state.loading)
   const error = useSubscriptionStore((state) => state.error)
   const user = useAuthStore((state) => state.user)
-
-  const [selectedMethod, setSelectedMethod] = useState('card')
-  const [showPromo, setShowPromo] = useState(false)
 
   // Redirect if no plan selected
   useEffect(() => {

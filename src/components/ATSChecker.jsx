@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { TEMPLATES, TEMPLATE_CATEGORIES, getTemplatesByCategory, getATSTemplates } from '../data/templates'
+import { TEMPLATES, TEMPLATE_CATEGORIES, getATSTemplates } from '../data/templates'
 
-export default function ATSChecker({ resumeData, onFix }) {
+export default function ATSChecker({ resumeData, onFix: _onFix }) {
   const [checked, setChecked] = useState(false)
   const [results, setResults] = useState(null)
 
