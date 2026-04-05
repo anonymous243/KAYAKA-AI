@@ -114,7 +114,7 @@ The backend server (`server/index.js`) is optional and provides:
 
 1. **Test All Flows:**
    - User signup/login
-   - Resume upload and parsing
+   - Resume upload anmd parsing
    - Profile editing
    - JD analysis
    - Resume generation

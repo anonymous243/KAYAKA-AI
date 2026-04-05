@@ -11,19 +11,32 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('📝 Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env')
 }
 
-// Create Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  },
-  global: {
-    headers: {
-      'X-Client-Info': 'kayaka-ai'
+// Create Supabase client with safety check
+export const supabase = (supabaseUrl && supabaseAnonKey) 
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+      },
+      global: {
+        headers: {
+          'X-Client-Info': 'kayaka-ai'
+        }
+      }
+    })
+  : {
+      auth: {
+        getSession: async () => ({ data: { session: null }, error: null }),
+        getUser: async () => ({ data: { user: null }, error: null }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+        signOut: async () => {}
+      },
+      from: () => ({
+        select: () => ({ limit: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }),
+        upsert: () => ({ select: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) })
+      })
     }
-  }
-})
 
 // Helper: Check if user is authenticated
 export const isAuthenticated = async () => {
