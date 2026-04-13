@@ -11,9 +11,14 @@ export default function ResumeUpload() {
   const parsedData = useResumeStore((state) => state.parsedData)
 
   const handleUpload = async (file) => {
-    const response = await uploadResume(file)
-    setParsedData(response)
-    // We stay on this page to show the success state before navigating
+    try {
+      const response = await uploadResume(file)
+      setParsedData(response)
+      // We stay on this page to show the success state before navigating
+    } catch (err) {
+      console.error('Upload handler error:', err)
+      // error is already caught and displayed by the FileUpload component's catch block
+    }
   }
 
   return (

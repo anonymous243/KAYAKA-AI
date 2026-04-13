@@ -125,6 +125,10 @@ export const useSubscriptionStore = create((set, get) => ({
         }
       }
 
+      if (!window.Razorpay) {
+        throw new Error('Razorpay SDK could not be loaded. Please check your internet connection or disable ad-blockers.')
+      }
+
       const rzp = new window.Razorpay(options)
       rzp.on('payment.failed', (response) => {
         set({ error: response.error.description, loading: false })

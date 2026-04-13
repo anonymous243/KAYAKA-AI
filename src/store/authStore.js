@@ -5,7 +5,13 @@ const USER_KEY = 'kayaka_ai_user_cache'
 const TOKEN_REFRESH_THRESHOLD = 5 * 60 * 1000 // 5 minutes before expiry
 
 export const useAuthStore = create((set, get) => ({
-  user: JSON.parse(localStorage.getItem(USER_KEY) || 'null'),
+  user: (() => {
+    try {
+      return JSON.parse(localStorage.getItem(USER_KEY) || 'null')
+    } catch {
+      return null
+    }
+  })(),
   session: null,
   isAuthenticated: false,
   loading: true,
@@ -24,7 +30,11 @@ export const useAuthStore = create((set, get) => ({
           isAuthenticated: true,
           loading: false
         })
-        localStorage.setItem(USER_KEY, JSON.stringify(session.user))
+        try {
+          localStorage.setItem(USER_KEY, JSON.stringify(session.user))
+        } catch (e) {
+          console.warn('Failed to save user to localStorage:', e)
+        }
 
         // Set up token refresh monitoring
         get().scheduleTokenRefresh(session)
@@ -36,7 +46,11 @@ export const useAuthStore = create((set, get) => ({
           loading: false,
           tokenRefreshTimer: null
         })
-        localStorage.removeItem(USER_KEY)
+        try {
+          localStorage.removeItem(USER_KEY)
+        } catch (e) {
+          console.warn('Failed to remove user from localStorage:', e)
+        }
       }
     } catch (error) {
       console.error('Auth init error:', error)
@@ -47,7 +61,11 @@ export const useAuthStore = create((set, get) => ({
         isAuthenticated: false,
         tokenRefreshTimer: null
       })
-      localStorage.removeItem(USER_KEY)
+      try {
+        localStorage.removeItem(USER_KEY)
+      } catch (e) {
+        console.warn('Failed to remove user from localStorage:', e)
+      }
     }
   },
 
@@ -126,7 +144,11 @@ export const useAuthStore = create((set, get) => ({
       session: data.session,
       isAuthenticated: true
     })
-    localStorage.setItem(USER_KEY, JSON.stringify(data.user))
+    try {
+      localStorage.setItem(USER_KEY, JSON.stringify(data.user))
+    } catch (e) {
+      console.warn('Failed to save user to localStorage:', e)
+    }
 
     return data
   },
@@ -185,7 +207,11 @@ export const useAuthStore = create((set, get) => ({
         session,
         isAuthenticated: true
       })
-      localStorage.setItem(USER_KEY, JSON.stringify(session.user))
+      try {
+        localStorage.setItem(USER_KEY, JSON.stringify(session.user))
+      } catch (e) {
+        console.warn('Failed to save user to localStorage:', e)
+      }
       return session
     }
 
@@ -205,7 +231,11 @@ export const useAuthStore = create((set, get) => ({
     // Update local state
     const updatedUser = { ...useAuthStore.getState().user, ...updates }
     set({ user: updatedUser })
-    localStorage.setItem(USER_KEY, JSON.stringify(updatedUser))
+    try {
+      localStorage.setItem(USER_KEY, JSON.stringify(updatedUser))
+    } catch (e) {
+      console.warn('Failed to save user to localStorage:', e)
+    }
 
     return data
   },
@@ -225,7 +255,11 @@ export const useAuthStore = create((set, get) => ({
       isAuthenticated: false,
       tokenRefreshTimer: null
     })
-    localStorage.removeItem(USER_KEY)
+    try {
+      localStorage.removeItem(USER_KEY)
+    } catch (e) {
+      console.warn('Failed to remove user from localStorage:', e)
+    }
   },
 
   // Listen to auth changes
@@ -240,14 +274,22 @@ export const useAuthStore = create((set, get) => ({
             session,
             isAuthenticated: true
           })
-          localStorage.setItem(USER_KEY, JSON.stringify(session.user))
+          try {
+            localStorage.setItem(USER_KEY, JSON.stringify(session.user))
+          } catch (e) {
+            console.warn('Failed to save user to localStorage:', e)
+          }
         } else {
           set({
             user: null,
             session: null,
             isAuthenticated: false
           })
-          localStorage.removeItem(USER_KEY)
+          try {
+            localStorage.removeItem(USER_KEY)
+          } catch (e) {
+            console.warn('Failed to remove user from localStorage:', e)
+          }
         }
 
         callback(event, session)

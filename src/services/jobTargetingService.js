@@ -307,10 +307,10 @@ export const generateRecruiterSummary = async (jobData, userSkills = []) => {
   // Simulate analysis delay
   await new Promise(resolve => setTimeout(resolve, 1000))
 
-  const description = jobData.description.toLowerCase()
+  const description = (jobData.description || '').toLowerCase()
   
   // Extract skills from job description
-  const jobSkills = extractSkillsFromDescription(jobData.description)
+  const jobSkills = extractSkillsFromDescription(jobData.description || '')
   
   // Find matching and missing skills
   const matchingSkills = userSkills.filter(skill =>
@@ -332,7 +332,7 @@ export const generateRecruiterSummary = async (jobData, userSkills = []) => {
   const matchPercentage = Math.round((matchingSkills.length / totalSkills) * 100)
 
   // Analyze recruiter intent signals
-  const intentSignals = analyzeIntentSignals(description, jobData)
+  const intentSignals = analyzeIntentSignals(description || '', jobData || {})
 
   // Determine overall recruiter intent
   let recruiterIntent = 'low'
@@ -370,6 +370,8 @@ const extractSkillsFromDescription = (description) => {
     'redux', 'zustand', 'next.js', 'nuxt', 'webpack', 'babel', 'jest', 'cypress'
   ]
 
+  if (!description || typeof description !== 'string') return []
+  
   return skillKeywords.filter(skill =>
     description.toLowerCase().includes(skill)
   ).map(skill => {
@@ -388,6 +390,7 @@ const extractSkillsFromDescription = (description) => {
  */
 const analyzeIntentSignals = (description, jobData) => {
   const signals = []
+  if (!description || typeof description !== 'string') return signals
 
   // Urgency signals
   if (description.includes('urgent') || description.includes('immediate') || description.includes('asap')) {

@@ -30,28 +30,45 @@ export const useResumeStore = create((set, _get) => ({
     const userId = getUserId()
     if (userId === 'anonymous') return
 
-    set({
-      parsedData: JSON.parse(localStorage.getItem(`kayaka_${userId}_parsed_data`) || 'null'),
-      jdAnalysis: JSON.parse(localStorage.getItem(`kayaka_${userId}_jd_analysis`) || 'null'),
-      selectedTemplate: JSON.parse(localStorage.getItem(`kayaka_${userId}_selected_template`) || 'null')
-    })
+    try {
+      set({
+        parsedData: JSON.parse(localStorage.getItem(`kayaka_${userId}_parsed_data`) || 'null'),
+        jdAnalysis: JSON.parse(localStorage.getItem(`kayaka_${userId}_jd_analysis`) || 'null'),
+        selectedTemplate: JSON.parse(localStorage.getItem(`kayaka_${userId}_selected_template`) || 'null')
+      })
+    } catch (e) {
+      console.error('Failed to parse user data from localStorage:', e)
+      set({ parsedData: null, jdAnalysis: null, selectedTemplate: null })
+    }
   },
 
   setParsedData: (data) => {
     const key = getStorageKey('parsed_data')
-    localStorage.setItem(key, JSON.stringify(data))
+    try {
+      localStorage.setItem(key, JSON.stringify(data))
+    } catch (e) {
+      console.warn('Failed to save parsed data to localStorage:', e)
+    }
     set({ parsedData: data })
   },
 
   setJdAnalysis: (data) => {
     const key = getStorageKey('jd_analysis')
-    localStorage.setItem(key, JSON.stringify(data))
+    try {
+      localStorage.setItem(key, JSON.stringify(data))
+    } catch (e) {
+      console.warn('Failed to save JD analysis to localStorage:', e)
+    }
     set({ jdAnalysis: data })
   },
 
   setSelectedTemplate: (template) => {
     const key = getStorageKey('selected_template')
-    localStorage.setItem(key, JSON.stringify(template))
+    try {
+      localStorage.setItem(key, JSON.stringify(template))
+    } catch (e) {
+      console.warn('Failed to save selected template to localStorage:', e)
+    }
     set({ selectedTemplate: template })
   },
 
@@ -61,9 +78,13 @@ export const useResumeStore = create((set, _get) => ({
   clearResume: () => {
     const userId = getUserId()
     if (userId !== 'anonymous') {
-      localStorage.removeItem(`kayaka_${userId}_parsed_data`)
-      localStorage.removeItem(`kayaka_${userId}_jd_analysis`)
-      localStorage.removeItem(`kayaka_${userId}_selected_template`)
+      try {
+        localStorage.removeItem(`kayaka_${userId}_parsed_data`)
+        localStorage.removeItem(`kayaka_${userId}_jd_analysis`)
+        localStorage.removeItem(`kayaka_${userId}_selected_template`)
+      } catch (e) {
+        console.warn('Failed to remove data from localStorage:', e)
+      }
     }
     set({ parsedData: null, jdAnalysis: null, uploadError: null })
   },
@@ -71,9 +92,13 @@ export const useResumeStore = create((set, _get) => ({
   // Update specific fields
   updateProfile: (updates) => {
     set((state) => {
-      const newData = { ...state.parsedData, ...updates }
+      const newData = { ...(state.parsedData || {}), ...updates }
       const key = getStorageKey('parsed_data')
-      localStorage.setItem(key, JSON.stringify(newData))
+      try {
+        localStorage.setItem(key, JSON.stringify(newData))
+      } catch (e) {
+        console.warn('Failed to save updated profile to localStorage:', e)
+      }
       return { parsedData: newData }
     })
   },

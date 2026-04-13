@@ -297,8 +297,9 @@ function parseProjectsSection(lines) {
 const extractTextFromPDF = async (file) => {
   try {
     const arrayBuffer = await file.arrayBuffer()
+    if (arrayBuffer.byteLength < 5) throw new Error('File is too small to be a valid PDF')
     const header = new Uint8Array(arrayBuffer.slice(0, 5))
-    if (String.fromCharCode(...header) !== '%PDF-') throw new Error('Invalid or corrupt PDF file')
+    if (String.fromCharCode(...header) !== '%PDF-') throw new Error('Invalid or corrupt PDF file structure')
 
     const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise
     if (pdf.numPages === 0) throw new Error('PDF has no pages')

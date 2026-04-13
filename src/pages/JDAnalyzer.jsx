@@ -276,7 +276,7 @@ export default function JDAnalyzer() {
                       <h3 className="text-xl font-black text-white uppercase tracking-tight">Aligned Skills</h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {analysis.matchingSkills.map(skill => (
+                      {(analysis.matchingSkills || []).map(skill => (
                         <span key={skill} className="px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-[10px] font-black uppercase tracking-widest">
                           {skill}
                         </span>
@@ -294,7 +294,7 @@ export default function JDAnalyzer() {
                       <h3 className="text-xl font-black text-white uppercase tracking-tight">Gaps to Bridge</h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {analysis.missingSkills.map(skill => (
+                      {(analysis.missingSkills || []).map(skill => (
                         <span key={skill} className="px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400 text-[10px] font-black uppercase tracking-widest">
                           {skill}
                         </span>
@@ -314,7 +314,7 @@ export default function JDAnalyzer() {
                     <h3 className="text-xl font-black text-white uppercase tracking-tight">Optimization Tips</h3>
                   </div>
                   <div className="space-y-4">
-                    {analysis.suggestions.map((tip, i) => (
+                    {(analysis.suggestions || []).map((tip, i) => (
                       <div key={i} className="flex items-center gap-4 p-5 bg-white/[0.02] border border-white/5 rounded-2xl">
                         <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-[10px] font-black text-white">
                           0{i + 1}

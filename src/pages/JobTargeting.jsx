@@ -351,26 +351,26 @@ export default function JobTargeting() {
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="bg-[#11192e] border border-white/5 rounded-[2.5rem] p-10">
                    <h3 className="text-[10px] font-black text-[#a5aac2] uppercase tracking-[0.2em] mb-8 border-b border-white/5 pb-4">Aligned Strengths</h3>
-                   <div className="flex flex-wrap gap-2">
-                     {analysis.matchingSkills.map(skill => (
-                       <span key={skill} className="px-5 py-2.5 bg-green-500/5 border border-green-500/10 rounded-xl text-green-400 text-[10px] font-black uppercase tracking-widest">{skill}</span>
-                     ))}
-                   </div>
+                    <div className="flex flex-wrap gap-2">
+                      {(analysis.matchingSkills || []).map(skill => (
+                        <span key={skill} className="px-5 py-2.5 bg-green-500/5 border border-green-500/10 rounded-xl text-green-400 text-[10px] font-black uppercase tracking-widest">{skill}</span>
+                      ))}
+                    </div>
                 </div>
                 <div className="bg-[#11192e] border border-white/5 rounded-[2.5rem] p-10">
                    <h3 className="text-[10px] font-black text-[#a5aac2] uppercase tracking-[0.2em] mb-8 border-b border-white/5 pb-4">Target Improvements</h3>
-                   <div className="flex flex-wrap gap-2">
-                     {analysis.missingSkills.map(skill => (
-                       <span key={skill} className="px-5 py-2.5 bg-amber-500/5 border border-amber-500/10 rounded-xl text-amber-400 text-[10px] font-black uppercase tracking-widest">{skill}</span>
-                     ))}
-                   </div>
+                    <div className="flex flex-wrap gap-2">
+                      {(analysis.missingSkills || []).map(skill => (
+                        <span key={skill} className="px-5 py-2.5 bg-amber-500/5 border border-amber-500/10 rounded-xl text-amber-400 text-[10px] font-black uppercase tracking-widest">{skill}</span>
+                      ))}
+                    </div>
                 </div>
               </div>
 
               <div className="bg-[#11192e] border border-white/5 rounded-[2.5rem] p-10">
                 <h3 className="text-[10px] font-black text-[#a5aac2] uppercase tracking-[0.3em] mb-10 text-center">AI Strategic Guidance</h3>
                 <div className="grid md:grid-cols-2 gap-4">
-                  {analysis.recommendations.map((rec, idx) => (
+                  {(analysis.recommendations || []).map((rec, idx) => (
                     <div key={idx} className="flex gap-4 p-5 bg-[#070d1f] border border-white/5 rounded-2xl">
                       <div className="w-8 h-8 rounded-lg bg-[#69f6b8]/10 flex items-center justify-center text-[10px] font-black text-[#69f6b8] flex-shrink-0">
                         {idx + 1}

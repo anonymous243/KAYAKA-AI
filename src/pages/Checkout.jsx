@@ -42,11 +42,16 @@ const Checkout = () => {
   }, [plan, rawAmount, navigate])
 
   const handlePay = async () => {
-    const success = await upgradePlan(plan.name, rawAmount)
-    if (success) {
-      // Handled by store/subscription state, user will be redirected via store logic if needed
-      // or we can navigate to dashboard here
-      setTimeout(() => navigate('/dashboard'), 1500)
+    try {
+      const success = await upgradePlan(plan.name, rawAmount)
+      if (success) {
+        // Handled by store/subscription state, user will be redirected via store logic if needed
+        // or we can navigate to dashboard here
+        setTimeout(() => navigate('/dashboard'), 1500)
+      }
+    } catch (err) {
+      console.error('Payment error:', err)
+      // Error is already handled by subscriptionStore state and displayed in UI
     }
   }
 
