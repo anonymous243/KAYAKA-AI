@@ -1,9 +1,0 @@
-{
-  "shortcuts": [
-    {
-      "label": "Run",
-      "command": "npm run all",
-      "icon": "play"
-    }
-  ]
-}
