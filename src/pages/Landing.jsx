@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import PageWrapper from '../components/PageWrapper';
 import { useAuthStore } from '../store/authStore';
@@ -25,6 +25,10 @@ export default function Landing() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuthStore()
   const [billingCycle, setBillingCycle] = useState('monthly')
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleLogoClick = () => {
     navigate(isAuthenticated ? '/dashboard' : '/')
