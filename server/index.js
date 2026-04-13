@@ -3,7 +3,10 @@ dotenv.config();
 
 import express from 'express';
 import cors from 'cors';
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+
+puppeteer.use(StealthPlugin());
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 

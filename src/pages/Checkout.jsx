@@ -27,7 +27,10 @@ const Checkout = () => {
 
   // Redirect if no plan selected
   useEffect(() => {
-    
+    if (!plan || !rawAmount) {
+      navigate('/subscription');
+      return;
+    }
     // Dynamically load Razorpay script
     const script = document.createElement('script')
     script.src = 'https://checkout.razorpay.com/v1/checkout.js'

@@ -90,16 +90,22 @@ export default function AuthPage({ defaultTab = 'login' }) {
         showToast('Welcome back 👋', 'success')
       } else {
         const { data } = await signUp(email, password, { name })
-        showToast('Workspace created! Please check your email.', 'success')
         if (!data.session) {
-          setError('Verification link sent. Please verify your email before entering the workspace.')
+          showToast('Workspace created! Please verify your email before logging in.', 'success')
+          // Switch to login tab so they can login after verifying
+          setActiveTab('login')
         } else {
+          showToast('Workspace created!', 'success')
           navigate('/dashboard', { replace: true })
         }
       }
     } catch (err) {
-      setError(err.message || `${activeTab === 'login' ? 'Login' : 'Signup'} failed`)
-      showToast(err.message || 'Authentication issue', 'error')
+      let errorMsg = err.message || `${activeTab === 'login' ? 'Login' : 'Signup'} failed`
+      if (errorMsg.includes('Invalid login credentials')) {
+        errorMsg += ' (Check if your email is verified)'
+      }
+      setError(errorMsg)
+      showToast(errorMsg, 'error')
     } finally {
       setLoading(false)
     }
