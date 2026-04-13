@@ -44,6 +44,8 @@ const Checkout = () => {
     }
   }, [plan, rawAmount, navigate])
 
+  if (!plan) return null; // Wait for redirect to happen
+
   const handlePay = async () => {
     try {
       const success = await upgradePlan(plan.name, rawAmount)

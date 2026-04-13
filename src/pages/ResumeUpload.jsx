@@ -70,7 +70,7 @@ export default function ResumeUpload() {
                   <div className="grid grid-cols-3 gap-2">
                     <span className="text-[10px] font-black text-[#a5aac2] uppercase tracking-wider">Top Skills</span>
                     <div className="col-span-2 flex flex-wrap gap-2">
-                      {parsedData.skills?.slice(0, 5).map(skill => (
+                      {(parsedData.skills || []).slice(0, 5).map(skill => (
                         <span key={skill} className="px-2 py-1 bg-white/5 border border-white/10 rounded-md text-[10px] font-bold text-[#69f6b8] uppercase tracking-tight">
                           {skill}
                         </span>

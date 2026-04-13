@@ -36,8 +36,24 @@ export const supabase = (supabaseUrl && supabaseAnonKey)
         signUp: async () => ({ data: null, error: new Error('Missing Supabase Environment Variables in Vercel') })
       },
       from: () => ({
-        select: () => ({ limit: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }),
-        upsert: () => ({ select: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) })
+        select: () => {
+          const mockQuery = {
+            limit: () => mockQuery,
+            eq: () => mockQuery,
+            single: async () => ({ data: null, error: null }),
+            maybeSingle: async () => ({ data: null, error: null })
+          }
+          return mockQuery
+        },
+        upsert: () => {
+          const mockQuery = {
+            select: () => mockQuery,
+            eq: () => mockQuery,
+            single: async () => ({ data: null, error: null }),
+            maybeSingle: async () => ({ data: null, error: null })
+          }
+          return mockQuery
+        }
       })
     }
 

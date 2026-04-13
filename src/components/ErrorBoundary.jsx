@@ -67,11 +67,14 @@ class ErrorBoundary extends Component {
                 We're sorry for the inconvenience. The error has been logged and we'll look into it.
               </p>
 
-              {/* Error Details (Development Only) */}
-              {window.location.hostname === 'localhost' && this.state.error && (
-                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-left">
-                  <p className="text-red-400 text-sm font-mono break-all">
+              {/* Error Details */}
+              {this.state.error && (
+                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-left overflow-auto max-h-[300px]">
+                  <p className="text-red-400 text-sm font-bold mb-2">Error Trace:</p>
+                  <p className="text-red-400 text-xs font-mono whitespace-pre-wrap">
                     {this.state.error.toString()}
+                    {'\n'}
+                    {this.state.error.stack}
                   </p>
                 </div>
               )}
