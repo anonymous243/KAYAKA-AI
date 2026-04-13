@@ -51,27 +51,7 @@ export default function ResumeGenerator() {
     return null
   }
 
-  if (!hasAccess('pro')) {
-    return (
-      <div className="min-h-screen bg-[#070d1f] flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-24 h-24 bg-[#69f6b8]/10 rounded-[2rem] flex items-center justify-center text-4xl mb-6 obsidian-glow">
-          <Lock className="w-10 h-10 text-[#69f6b8]" />
-        </div>
-        <h1 className="text-3xl font-black uppercase tracking-tight mb-4">Pro Feature Locked</h1>
-        <p className="text-[#a5aac2] mb-8 max-w-md mx-auto">
-          Unlimited AI Resume Generation and Premium AST Optimization are available only on the <span className="text-[#69f6b8] font-bold">Pro</span> and <span className="text-blue-400 font-bold">Elite</span> plans.
-        </p>
-        <div className="flex gap-4">
-          <Link to="/subscription" className="px-8 py-4 bg-[#69f6b8] text-[#002919] rounded-xl font-black text-xs uppercase tracking-widest shadow-[0_0_30px_rgba(105,246,184,0.3)] transition-all hover:scale-105 active:scale-95">
-            Upgrade Now
-          </Link>
-          <button onClick={() => navigate('/dashboard')} className="px-8 py-4 bg-white/5 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all">
-            Back to Dashboard
-          </button>
-        </div>
-      </div>
-    )
-  }
+
 
   // ── Derived ───────────────────────────────────────────────
   const filtered = activeCat === 'all' ? TEMPLATES : TEMPLATES.filter(t => t.category === activeCat)
@@ -264,7 +244,7 @@ export default function ResumeGenerator() {
                 {/* Paper Container */}
                 <div
                   ref={previewRef}
-                  className="shadow-[0_48px_120px_-40px_rgba(0,0,0,0.9)] rounded-[2px] transition-all duration-700 ease-out border border-white/10"
+                  className="shadow-[0_48px_120px_-40px_rgba(0,0,0,0.9)] rounded-[2px] transition-all duration-700 ease-out border border-white/10 relative"
                   style={{
                     width: A4_W * zoom,
                     height: A4_H * zoom,
@@ -281,6 +261,11 @@ export default function ResumeGenerator() {
                         onUpdate={handleUpdate}
                     />
                   </div>
+                  {!hasAccess('pro') && (
+                    <div className="absolute bottom-4 right-4 text-gray-400/50 font-bold text-xs pointer-events-none select-none tracking-widest uppercase">
+                      Created with Kayaka-AI (Free Plan)
+                    </div>
+                  )}
                 </div>
               </div>
            </div>
@@ -310,6 +295,20 @@ export default function ResumeGenerator() {
       {/* Hidden export layer */}
       <div ref={pdfRef} style={{ position: 'fixed', left: -9999, width: A4_W, height: A4_H, background: 'white' }}>
         <ResumeRenderer data={resumeData} template={activeTemplate} scale={1} onUpdate={() => {}} />
+        {!hasAccess('pro') && (
+          <div style={{
+            position: 'absolute',
+            bottom: '20px',
+            right: '20px',
+            color: 'rgba(156, 163, 175, 0.5)',
+            fontSize: '12px',
+            fontWeight: 'bold',
+            letterSpacing: '0.1em',
+            textTransform: 'uppercase'
+          }}>
+            Created with Kayaka-AI (Free Plan)
+          </div>
+        )}
       </div>
     </div>
   )
