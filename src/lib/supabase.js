@@ -30,13 +30,17 @@ export const supabase = (supabaseUrl && supabaseAnonKey)
         getSession: async () => ({ data: { session: null }, error: null }),
         getUser: async () => ({ data: { user: null }, error: null }),
         onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-        signOut: async () => {}
+        signOut: async () => {},
+        signInWithOAuth: async () => ({ data: null, error: new Error('Missing Supabase Environment Variables in Vercel (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY)') }),
+        signInWithPassword: async () => ({ data: null, error: new Error('Missing Supabase Environment Variables in Vercel') }),
+        signUp: async () => ({ data: null, error: new Error('Missing Supabase Environment Variables in Vercel') })
       },
       from: () => ({
         select: () => ({ limit: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }),
         upsert: () => ({ select: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) })
       })
     }
+
 
 // Helper: Check if user is authenticated
 export const isAuthenticated = async () => {
