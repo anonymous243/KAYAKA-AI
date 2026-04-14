@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useSubscriptionStore } from '../store/subscriptionStore'
 import { Sparkles, CheckCircle2, AlertCircle } from 'lucide-react'
