@@ -1,8 +1,6 @@
 import * as pdfjs from 'pdfjs-dist'
-import workerSrc from 'pdfjs-dist/build/pdf.worker?url'
-
-// Use locally bundled worker — always matches installed pdfjs-dist version
-pdfjs.GlobalWorkerOptions.workerSrc = workerSrc
+// Use explicitly versioned CDN for the worker to avoid Vercel/Vite chunk origin CORS issues
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`
 
 // ─────────────────────────────────────────────
 // Section header detection
