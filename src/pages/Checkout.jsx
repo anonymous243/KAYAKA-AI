@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useLocation, useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -25,21 +25,41 @@ const Checkout = () => {
   const error = useSubscriptionStore((state) => state.error)
   const user = useAuthStore((state) => state.user)
 
-  // Redirect if no plan selected
+  // Redirect if no plan selected and load Razorpay SDK
   useEffect(() => {
     if (!plan || !rawAmount) {
       navigate('/subscription');
       return;
     }
-    // Dynamically load Razorpay script
+    
+    // Check if Razorpay is already loaded
+    if (window.Razorpay) {
+      return;
+    }
+
+    // Dynamically load Razorpay script with better error handling
     const script = document.createElement('script')
     script.src = 'https://checkout.razorpay.com/v1/checkout.js'
     script.async = true
-    document.body.appendChild(script)
     
+    script.onload = () => {
+      console.log('Razorpay SDK loaded successfully')
+    }
+    
+    script.onerror = () => {
+      console.error('Failed to load Razorpay SDK')
+    }
+    
+    document.body.appendChild(script)
+
     return () => {
+      // Clean up script on unmount
       if (document.body.contains(script)) {
-        document.body.removeChild(script)
+        try {
+          document.body.removeChild(script)
+        } catch {
+          // Ignore cleanup errors
+        }
       }
     }
   }, [plan, rawAmount, navigate])
@@ -50,15 +70,16 @@ const Checkout = () => {
     try {
       const success = await upgradePlan(plan.name, rawAmount)
       if (success) {
-        // Handled by store/subscription state, user will be redirected via store logic if needed
-        // or we can navigate to dashboard here
         setTimeout(() => navigate('/dashboard'), 1500)
       }
     } catch (err) {
       console.error('Payment error:', err)
-      // Error is already handled by subscriptionStore state and displayed in UI
+      // Error is already handled by subscriptionStore
     }
   }
+
+  // Check if Razorpay SDK is loaded
+  const isRazorpayLoaded = !!window.Razorpay
 
   if (!plan) return null
 
@@ -201,13 +222,13 @@ const Checkout = () => {
 
               <button
                 onClick={handlePay}
-                disabled={loading}
+                disabled={loading || !isRazorpayLoaded}
                 className="w-full bg-[#69f6b8] hover:bg-[#58e2a3] text-[#002919] py-6 rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] shadow-[0_20px_40px_-15px_rgba(105,246,184,0.3)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 relative overflow-hidden group"
               >
-                <span className={loading ? 'opacity-0' : 'opacity-100 group-hover:tracking-[0.3em] transition-all'}>
-                  {loading ? '' : 'Connect to Razorpay'}
+                <span className={(loading || !isRazorpayLoaded) ? 'opacity-0' : 'opacity-100 group-hover:tracking-[0.3em] transition-all'}>
+                  {loading ? '' : (!isRazorpayLoaded ? 'Loading Payment System...' : 'Connect to Razorpay')}
                 </span>
-                {loading && (
+                {(loading || !isRazorpayLoaded) && (
                    <div className="absolute inset-0 flex items-center justify-center">
                       <div className="w-5 h-5 border-2 border-[#002919]/30 border-t-[#002919] rounded-full animate-spin" />
                    </div>

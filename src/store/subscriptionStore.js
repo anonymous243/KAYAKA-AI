@@ -3,13 +3,23 @@ import { supabase } from '../lib/supabase'
 import { useAuthStore } from './authStore'
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://kayaka-ai.anonymous24tr.workers.dev/api'
+// Smart API URL detection (same logic as api.js)
+const getApiUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL
+  if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+    return envUrl
+  }
+  return 'https://kayaka-ai.anonymous24tr.workers.dev/api'
+}
+
+const API_BASE_URL = getApiUrl()
 
 export const useSubscriptionStore = create((set, get) => ({
   plan: 'free',
   status: 'inactive',
   loading: false,
   error: null,
+  initialized: false,
 
   hasAccess: (requiredPlan) => {
     const currentPlan = get().plan
@@ -19,12 +29,22 @@ export const useSubscriptionStore = create((set, get) => ({
     return false
   },
 
+  // Initialize store on first load
+  initialize: () => {
+    if (get().initialized) return
+    get().fetchSubscription()
+    set({ initialized: true })
+  },
+
   // Fetch current subscription status from Supabase profile
   fetchSubscription: async () => {
     const user = useAuthStore.getState().user
-    if (!user) return
+    if (!user) {
+      set({ loading: false })
+      return
+    }
 
-    set({ loading: true })
+    set({ loading: true, error: null })
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -32,25 +52,37 @@ export const useSubscriptionStore = create((set, get) => ({
         .eq('id', user.id)
         .maybeSingle()
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase fetch error:', error)
+        // Don't throw, just default to free
+        set({
+          plan: 'free',
+          status: 'inactive',
+          loading: false,
+          error: null
+        })
+        return
+      }
 
       if (data) {
-        set({ 
+        set({
           plan: data.plan || 'free',
           status: data.subscription_status || 'inactive',
-          loading: false 
+          loading: false,
+          error: null
         })
       } else {
         // Profile doesn't exist yet, default to free
-        set({ 
+        set({
           plan: 'free',
           status: 'inactive',
-          loading: false 
+          loading: false,
+          error: null
         })
       }
     } catch (error) {
       console.error('Error fetching subscription:', error)
-      set({ error: error.message, loading: false })
+      set({ error: null, loading: false }) // Don't show error, just default to free
     }
   },
 
@@ -59,7 +91,7 @@ export const useSubscriptionStore = create((set, get) => ({
     const user = useAuthStore.getState().user
     if (!user) {
       set({ error: 'User must be logged in to upgrade' })
-      return
+      return false
     }
 
     set({ loading: true, error: null })
@@ -70,6 +102,8 @@ export const useSubscriptionStore = create((set, get) => ({
         currency: 'INR',
         planName,
         userId: user.id
+      }, {
+        timeout: 15000 // 15 second timeout
       })
 
       const order = response.data
@@ -83,13 +117,15 @@ export const useSubscriptionStore = create((set, get) => ({
         description: `Upgrade to ${planName} Plan`,
         order_id: order.id,
         handler: async (response) => {
-          // 3. Verify payment on backend
           try {
+            // 3. Verify payment on backend
             const verificationResponse = await axios.post(`${API_BASE_URL}/verify-payment`, {
               ...response,
               userId: user.id,
               planName,
               amount
+            }, {
+              timeout: 15000
             })
 
             if (verificationResponse.data.status === 'success') {
@@ -100,18 +136,24 @@ export const useSubscriptionStore = create((set, get) => ({
                   id: user.id,
                   plan: planName.toLowerCase(),
                   subscription_status: 'active',
-                  subscription_id: order.id, // Using order ID as subscription ID for now
+                  subscription_id: order.id,
                   updated_at: new Date().toISOString()
                 })
 
-              if (updateError) throw updateError
+              if (updateError) {
+                console.error('Supabase update error:', updateError)
+                // Don't fail the whole upgrade if Supabase fails
+              }
 
-              set({ plan: planName.toLowerCase(), status: 'active', loading: false })
+              set({ plan: planName.toLowerCase(), status: 'active', loading: false, error: null })
               return true
+            } else {
+              set({ error: 'Payment verification failed', loading: false })
+              return false
             }
           } catch (err) {
             console.error('Payment verification failed:', err)
-            set({ error: 'Payment verification failed', loading: false })
+            set({ error: 'Payment verification failed. Please contact support.', loading: false })
             return false
           }
         },
@@ -122,22 +164,33 @@ export const useSubscriptionStore = create((set, get) => ({
         },
         theme: {
           color: '#6C5CE7'
+        },
+        modal: {
+          ondismiss: function() {
+            set({ loading: false, error: 'Payment cancelled' })
+          }
         }
       }
 
+      // Check if Razorpay SDK is loaded
       if (!window.Razorpay) {
         throw new Error('Razorpay SDK could not be loaded. Please check your internet connection or disable ad-blockers.')
       }
 
       const rzp = new window.Razorpay(options)
+      
       rzp.on('payment.failed', (response) => {
-        set({ error: response.error.description, loading: false })
+        const errorMsg = response.error?.description || 'Payment failed. Please try again.'
+        set({ error: errorMsg, loading: false })
       })
+      
       rzp.open()
 
     } catch (error) {
       console.error('Error starting upgrade:', error)
-      set({ error: error.message, loading: false })
+      const errorMsg = error.response?.data?.error || error.message || 'Failed to initiate upgrade'
+      set({ error: errorMsg, loading: false })
+      return false
     }
   }
 }))

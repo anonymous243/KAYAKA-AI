@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useEffect } from 'react'
 import FileUpload from '../components/FileUpload'
 import { uploadResume } from '../services/resumeService'
 import { useResumeStore } from '../store/resumeStore'
@@ -10,11 +11,22 @@ export default function ResumeUpload() {
   const setParsedData = useResumeStore((state) => state.setParsedData)
   const parsedData = useResumeStore((state) => state.parsedData)
 
+  // Auto-redirect if resume already uploaded
+  useEffect(() => {
+    if (parsedData) {
+      const timer = setTimeout(() => {
+        navigate('/profile')
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [parsedData, navigate])
+
   const handleUpload = async (file) => {
     try {
       const response = await uploadResume(file)
       setParsedData(response)
-      // We stay on this page to show the success state before navigating
+      // Auto-redirect after successful upload
+      setTimeout(() => navigate('/profile'), 2000)
     } catch (err) {
       console.error('Upload handler error:', err)
       // error is already caught and displayed by the FileUpload component's catch block

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function FileUpload({ onUpload, accept = '.pdf,.doc,.docx', maxSize = 5 * 1024 * 1024 }) {
   const [dragActive, setDragActive] = useState(false)
@@ -70,7 +70,9 @@ export default function FileUpload({ onUpload, accept = '.pdf,.doc,.docx', maxSi
     try {
       await onUpload(file)
     } catch (err) {
-      setError(err.message || 'Upload failed. Please try again')
+      console.error('FileUpload error:', err)
+      const errorMessage = err?.response?.data?.error || err?.message || 'Upload failed. Please try again'
+      setError(errorMessage)
     } finally {
       setUploading(false)
     }

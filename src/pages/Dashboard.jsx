@@ -124,8 +124,10 @@ export default function Dashboard() {
   const [profileOpen, setProfileOpen] = useState(false)
 
   useEffect(() => {
+    // Initialize subscription store on dashboard mount
     fetchSubscription()
-  }, [fetchSubscription])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Only run once on mount
 
   const displayName = user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email || 'User'
   const firstName = displayName.split(' ')[0]

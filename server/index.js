@@ -17,18 +17,28 @@ const PORT = process.env.PORT || 3001;
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   'http://localhost:5173',
-  'http://localhost:3000'
+  'http://localhost:3000',
+  // Vercel deployment URLs
+  'https://kayaka-ai.vercel.app',
+  /\.vercel\.app$/,  // All Vercel preview URLs
 ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
+    
+    // Check if origin matches exactly or matches wildcard patterns
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (typeof allowed === 'string') return origin === allowed;
+      if (allowed instanceof RegExp) return allowed.test(origin);
+      return false;
+    });
+    
+    if (isAllowed) return callback(null, true);
+    
+    const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+    return callback(new Error(msg), false);
   }
 }));
 app.use(express.json());

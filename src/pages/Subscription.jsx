@@ -66,7 +66,8 @@ export default function Subscription() {
 
   useEffect(() => {
     fetchSubscription()
-  }, [fetchSubscription])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Fetch once on mount
 
   const handleUpgrade = (plan) => {
     if (plan.name.toLowerCase() === currentPlan) return

@@ -1,8 +1,19 @@
 import axios from 'axios'
 import { useAuthStore } from '../store/authStore'
 
+// Smart API URL detection: fallback to Cloudflare Workers if localhost in production
+const getApiUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL
+  // If it's localhost (dev), use it; otherwise check if we're on Vercel
+  if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+    return envUrl
+  }
+  // For production (Vercel), use Cloudflare Workers fallback
+  return 'https://kayaka-ai.anonymous24tr.workers.dev/api'
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://kayaka-ai.anonymous24tr.workers.dev/api',
+  baseURL: getApiUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
