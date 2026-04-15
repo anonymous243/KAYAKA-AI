@@ -1,8 +1,8 @@
 import { create } from 'zustand'
-import { supabase, signOut } from '../lib/supabase'
+import { auth } from '../lib/cloudflare'
 
 const USER_KEY = 'kayaka_ai_user_cache'
-const TOKEN_REFRESH_THRESHOLD = 5 * 60 * 1000 // 5 minutes before expiry
+const TOKEN_KEY = 'kayaka_auth_token'
 
 export const useAuthStore = create((set, get) => ({
   user: (() => {
@@ -15,13 +15,11 @@ export const useAuthStore = create((set, get) => ({
   session: null,
   isAuthenticated: false,
   loading: true,
-  tokenRefreshTimer: null,
 
   // Initialize auth state on app load
   initAuth: async () => {
     try {
-      // Get current session
-      const { data: { session } } = await supabase.auth.getSession()
+      const { data: { session } } = await auth.getSession()
 
       if (session) {
         set({
@@ -30,27 +28,15 @@ export const useAuthStore = create((set, get) => ({
           isAuthenticated: true,
           loading: false
         })
-        try {
-          localStorage.setItem(USER_KEY, JSON.stringify(session.user))
-        } catch (e) {
-          console.warn('Failed to save user to localStorage:', e)
-        }
-
-        // Set up token refresh monitoring
-        get().scheduleTokenRefresh(session)
       } else {
         set({
           user: null,
           session: null,
           isAuthenticated: false,
-          loading: false,
-          tokenRefreshTimer: null
+          loading: false
         })
-        try {
-          localStorage.removeItem(USER_KEY)
-        } catch (e) {
-          console.warn('Failed to remove user from localStorage:', e)
-        }
+        localStorage.removeItem(USER_KEY)
+        localStorage.removeItem(TOKEN_KEY)
       }
     } catch (error) {
       console.error('Auth init error:', error)
@@ -58,244 +44,81 @@ export const useAuthStore = create((set, get) => ({
         loading: false,
         user: null,
         session: null,
-        isAuthenticated: false,
-        tokenRefreshTimer: null
+        isAuthenticated: false
       })
-      try {
-        localStorage.removeItem(USER_KEY)
-      } catch (e) {
-        console.warn('Failed to remove user from localStorage:', e)
-      }
+      localStorage.removeItem(USER_KEY)
+      localStorage.removeItem(TOKEN_KEY)
     }
-  },
-
-  // Schedule token refresh before expiry
-  scheduleTokenRefresh: (session) => {
-    // Clear existing timer
-    if (get().tokenRefreshTimer) {
-      clearTimeout(get().tokenRefreshTimer)
-    }
-
-    // Calculate time until token expires (minus buffer)
-    const expiresAt = session.expires_at * 1000
-    const now = Date.now()
-    const timeUntilExpiry = expiresAt - now - TOKEN_REFRESH_THRESHOLD
-
-    if (timeUntilExpiry > 0) {
-      console.log(`Token refresh scheduled in ${Math.round(timeUntilExpiry / 1000)}s`)
-      
-      const timer = setTimeout(async () => {
-        try {
-          const { data: { session: newSession }, error } = await supabase.auth.refreshSession()
-          
-          if (error) throw error
-          
-          if (newSession) {
-            set({ session: newSession })
-            localStorage.setItem(USER_KEY, JSON.stringify(newSession.user))
-            
-            // Schedule next refresh
-            get().scheduleTokenRefresh(newSession)
-          }
-        } catch (error) {
-          console.error('Token refresh failed:', error)
-          // Token refresh failed - user will need to re-authenticate
-          get().signOut()
-        }
-      }, timeUntilExpiry)
-
-      set({ tokenRefreshTimer: timer })
-    }
-  },
-
-  // Check if token is about to expire
-  isTokenExpiring: () => {
-    const { session } = get()
-    if (!session) return false
-    
-    const expiresAt = session.expires_at * 1000
-    const now = Date.now()
-    const timeUntilExpiry = expiresAt - now
-    
-    return timeUntilExpiry < TOKEN_REFRESH_THRESHOLD
-  },
-
-  // Get time until token expires (in seconds)
-  getTokenExpiryTime: () => {
-    const { session } = get()
-    if (!session) return 0
-    
-    const expiresAt = session.expires_at * 1000
-    const now = Date.now()
-    return Math.max(0, Math.round((expiresAt - now) / 1000))
-  },
-
-  // Sign in with email/password
-  signIn: async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    })
-
-    if (error) throw error
-
-    set({
-      user: data.user,
-      session: data.session,
-      isAuthenticated: true
-    })
-    try {
-      localStorage.setItem(USER_KEY, JSON.stringify(data.user))
-    } catch (e) {
-      console.warn('Failed to save user to localStorage:', e)
-    }
-
-    return data
-  },
-
-  // Sign up with email/password
-  signUp: async (email, password, metadata = {}) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: metadata
-      }
-    })
-
-    if (error) throw error
-
-    // Note: User needs to confirm email before session is created
-    return data
   },
 
   // Sign in with Google
   signInWithGoogle: async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`
-      }
-    })
-
-    if (error) throw error
-    return data
+    const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
+    const redirectUri = `${window.location.origin}/auth/callback`
+    
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${GOOGLE_CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `response_type=code&` +
+      `scope=email profile&` +
+      `access_type=offline&` +
+      `prompt=consent`
+    
+    window.location.href = authUrl
   },
 
   // Sign in with GitHub
   signInWithGitHub: async () => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        redirectTo: `${window.location.origin}/auth/github/callback`
-      }
-    })
-
-    if (error) throw error
-    return data
+    const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID
+    const redirectUri = `${window.location.origin}/auth/github/callback`
+    
+    const authUrl = `https://github.com/login/oauth/authorize?` +
+      `client_id=${GITHUB_CLIENT_ID}&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `scope=user:email`
+    
+    window.location.href = authUrl
   },
 
   // Handle OAuth callback
-  handleOAuthCallback: async () => {
-    const { data: { session }, error } = await supabase.auth.getSession()
-
-    if (error) throw error
-
-    if (session) {
-      set({
-        user: session.user,
-        session,
-        isAuthenticated: true
-      })
-      try {
-        localStorage.setItem(USER_KEY, JSON.stringify(session.user))
-      } catch (e) {
-        console.warn('Failed to save user to localStorage:', e)
-      }
-      return session
-    }
-
-    return null
+  handleOAuthCallback: async (provider, code) => {
+    const { user, profile, token } = await auth.handleOAuthCallback(provider, code)
+    
+    set({
+      user,
+      session: { user, token },
+      isAuthenticated: true,
+      loading: false
+    })
+    
+    return { user, profile }
   },
 
-  // Update user profile in database
+  // Update user profile
   updateProfile: async (updates) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .upsert({ id: useAuthStore.getState().user?.id, ...updates })
-      .select()
-      .maybeSingle()
-
-    if (error) throw error
-
-    // Update local state
-    const updatedUser = { ...useAuthStore.getState().user, ...updates }
+    const { db } = await import('../lib/cloudflare')
+    const data = await db.updateProfile(updates)
+    
+    const updatedUser = { ...get().user, ...updates }
     set({ user: updatedUser })
-    try {
-      localStorage.setItem(USER_KEY, JSON.stringify(updatedUser))
-    } catch (e) {
-      console.warn('Failed to save user to localStorage:', e)
-    }
-
+    localStorage.setItem(USER_KEY, JSON.stringify(updatedUser))
+    
     return data
   },
 
   // Sign out
   signOut: async () => {
-    // Clear token refresh timer
-    if (get().tokenRefreshTimer) {
-      clearTimeout(get().tokenRefreshTimer)
-      set({ tokenRefreshTimer: null })
-    }
-    
-    await signOut()
+    await auth.signOut()
     set({
       user: null,
       session: null,
       isAuthenticated: false,
-      tokenRefreshTimer: null
+      loading: false
     })
-    try {
-      localStorage.removeItem(USER_KEY)
-    } catch (e) {
-      console.warn('Failed to remove user from localStorage:', e)
-    }
   },
 
   // Listen to auth changes
   subscribeToAuthChanges: (callback) => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth event:', event)
-
-        if (session) {
-          set({
-            user: session.user,
-            session,
-            isAuthenticated: true
-          })
-          try {
-            localStorage.setItem(USER_KEY, JSON.stringify(session.user))
-          } catch (e) {
-            console.warn('Failed to save user to localStorage:', e)
-          }
-        } else {
-          set({
-            user: null,
-            session: null,
-            isAuthenticated: false
-          })
-          try {
-            localStorage.removeItem(USER_KEY)
-          } catch (e) {
-            console.warn('Failed to remove user from localStorage:', e)
-          }
-        }
-
-        callback(event, session)
-      }
-    )
-
-    return subscription
+    return auth.onAuthStateChange(callback)
   }
 }))

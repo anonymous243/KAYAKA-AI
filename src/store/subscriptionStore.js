@@ -1,10 +1,10 @@
 import { create } from 'zustand'
-import { supabase } from '../lib/supabase'
+import { db } from '../lib/cloudflare'
 import { useAuthStore } from './authStore'
 import axios from 'axios'
 
-// Smart API URL detection (same logic as api.js)
-const getApiUrl = () => {
+// Smart API URL detection for Razorpay (backend service)
+const getBackendUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL
   if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
     return envUrl
@@ -12,7 +12,7 @@ const getApiUrl = () => {
   return 'https://kayaka-ai.anonymous24tr.workers.dev/api'
 }
 
-const API_BASE_URL = getApiUrl()
+const BACKEND_API_URL = getBackendUrl()
 
 export const useSubscriptionStore = create((set, get) => ({
   plan: 'free',
@@ -36,7 +36,7 @@ export const useSubscriptionStore = create((set, get) => ({
     set({ initialized: true })
   },
 
-  // Fetch current subscription status from Supabase profile
+  // Fetch current subscription status from Cloudflare
   fetchSubscription: async () => {
     const user = useAuthStore.getState().user
     if (!user) {
@@ -46,33 +46,16 @@ export const useSubscriptionStore = create((set, get) => ({
 
     set({ loading: true, error: null })
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('plan, subscription_status, current_period_end')
-        .eq('id', user.id)
-        .maybeSingle()
+      const profile = await db.getProfile()
 
-      if (error) {
-        console.error('Supabase fetch error:', error)
-        // Don't throw, just default to free
+      if (profile) {
         set({
-          plan: 'free',
-          status: 'inactive',
-          loading: false,
-          error: null
-        })
-        return
-      }
-
-      if (data) {
-        set({
-          plan: data.plan || 'free',
-          status: data.subscription_status || 'inactive',
+          plan: profile.plan || 'free',
+          status: profile.status || 'inactive',
           loading: false,
           error: null
         })
       } else {
-        // Profile doesn't exist yet, default to free
         set({
           plan: 'free',
           status: 'inactive',
@@ -82,7 +65,7 @@ export const useSubscriptionStore = create((set, get) => ({
       }
     } catch (error) {
       console.error('Error fetching subscription:', error)
-      set({ error: null, loading: false }) // Don't show error, just default to free
+      set({ error: null, loading: false })
     }
   },
 
@@ -96,19 +79,14 @@ export const useSubscriptionStore = create((set, get) => ({
 
     set({ loading: true, error: null })
     try {
-      // 1. Create order on backend
-      const response = await axios.post(`${API_BASE_URL}/create-order`, {
+      // Create order via Cloudflare Worker
+      const order = await db.createOrder({
         amount,
         currency: 'INR',
-        planName,
-        userId: user.id
-      }, {
-        timeout: 15000 // 15 second timeout
+        planName
       })
 
-      const order = response.data
-
-      // 2. Open Razorpay Checkout
+      // Open Razorpay Checkout
       const options = {
         key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder',
         amount: order.amount,
@@ -118,34 +96,20 @@ export const useSubscriptionStore = create((set, get) => ({
         order_id: order.id,
         handler: async (response) => {
           try {
-            // 3. Verify payment on backend
-            const verificationResponse = await axios.post(`${API_BASE_URL}/verify-payment`, {
+            // Verify payment via Cloudflare Worker
+            const verificationResponse = await db.verifyPayment({
               ...response,
-              userId: user.id,
               planName,
               amount
-            }, {
-              timeout: 15000
             })
 
-            if (verificationResponse.data.status === 'success') {
-              // 4. Update Supabase profile (use upsert to handle missing profiles)
-              const { error: updateError } = await supabase
-                .from('profiles')
-                .upsert({
-                  id: user.id,
-                  plan: planName.toLowerCase(),
-                  subscription_status: 'active',
-                  subscription_id: order.id,
-                  updated_at: new Date().toISOString()
-                })
-
-              if (updateError) {
-                console.error('Supabase update error:', updateError)
-                // Don't fail the whole upgrade if Supabase fails
-              }
-
-              set({ plan: planName.toLowerCase(), status: 'active', loading: false, error: null })
+            if (verificationResponse.status === 'success') {
+              set({ 
+                plan: planName.toLowerCase(), 
+                status: 'active', 
+                loading: false, 
+                error: null 
+              })
               return true
             } else {
               set({ error: 'Payment verification failed', loading: false })
@@ -158,7 +122,7 @@ export const useSubscriptionStore = create((set, get) => ({
           }
         },
         prefill: {
-          name: user.user_metadata?.full_name || '',
+          name: user.name || user.user_metadata?.full_name || '',
           email: user.email || '',
           contact: user.user_metadata?.phone || '',
         },

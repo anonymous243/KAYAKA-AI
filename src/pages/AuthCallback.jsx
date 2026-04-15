@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { useToast } from '../hooks/useToast'
 
-// Handles OAuth redirects from both Google and GitHub via Supabase
+// Handles OAuth redirects from Google and GitHub via Cloudflare Worker
 export default function AuthCallback() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { handleOAuthCallback } = useAuthStore()
   const { showToast } = useToast()
   const [error, setError] = useState('')
@@ -13,28 +14,31 @@ export default function AuthCallback() {
   useEffect(() => {
     const process = async () => {
       try {
-        // Supabase detects the session from the URL hash/params automatically
-        const session = await handleOAuthCallback()
-        if (session) {
-          showToast('Welcome!', 'success')
+        // Extract authorization code from URL
+        const code = searchParams.get('code')
+        const errorParam = searchParams.get('error')
+        
+        if (errorParam) {
+          throw new Error('OAuth provider returned error: ' + errorParam)
+        }
+        
+        if (!code) {
+          throw new Error('No authorization code received')
+        }
+
+        // Determine provider from URL path
+        const isGitHub = window.location.pathname.includes('github')
+        const provider = isGitHub ? 'github' : 'google'
+
+        // Exchange code for token via Cloudflare Worker
+        const { user, profile } = await handleOAuthCallback(provider, code)
+        
+        if (user) {
+          showToast(`Welcome, ${user.name || user.email}!`, 'success')
           navigate('/dashboard', { replace: true })
         } else {
-          // No session yet — wait a moment and retry (Supabase may still be processing)
-          setTimeout(async () => {
-            try {
-              const retrySession = await handleOAuthCallback()
-              if (retrySession) {
-                showToast('Welcome!', 'success')
-                navigate('/dashboard', { replace: true })
-              } else {
-                setError('Authentication failed. No session received.')
-                setTimeout(() => navigate('/login', { replace: true }), 3000)
-              }
-            } catch (err) {
-              setError(err.message || 'Authentication failed')
-              setTimeout(() => navigate('/login', { replace: true }), 3000)
-            }
-          }, 1500)
+          setError('Authentication failed. No user data received.')
+          setTimeout(() => navigate('/login', { replace: true }), 3000)
         }
       } catch (err) {
         console.error('OAuth callback error:', err)
